@@ -1,0 +1,11 @@
+---
+user1_1:
+  id: 1
+  user_id: 1
+  email: maiha@example.com
+
+user1_2:
+  id: 2
+  user_id: 1
+  email: maiha@example.co.jp
+

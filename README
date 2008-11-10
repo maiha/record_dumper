@@ -1,0 +1,123 @@
+RecordDumper
+============
+
+Dumps ActiveRecord data with various formats.
+
+
+Syntax
+======
+
+  ActiveRecord::Base#record_dumper(options = {})
+
+
+Usage
+=====
+
+1. default format
+
+The default format is 'create!'. Just call 'record_dumper' method.
+
+  user = User.new(:name => 'maiha', :age => 14)
+  puts user.record_dumper.to_s
+
+  # =>
+  User.create!(
+    :id   => nil,
+    :name => "maiha",
+    :age  => 14
+  )
+
+
+2. other formats (create, save, save!)
+
+Send the method directly to record_dumper object.
+
+  user = User.new(:name => 'maiha', :age => 14)
+  puts user.record_dumper.save.to_s
+
+  # =>
+  record = User.new
+  record[:id]   = nil
+  record[:name] = "maiha"
+  record[:age]  = 14
+  record.save
+
+
+3. SQL format
+
+  user = User.new(:name => 'maiha', :age => 14)
+  puts user.record_dumper.sql.to_s
+
+  # =>
+  INSERT INTO users VALUES (
+  NULL,
+  'maiha',
+  14
+  );
+
+
+4. with :delimiter option
+
+Use :delimiter option as you like if you don't want line breaks.
+
+  user = User.new(:name => 'maiha', :age => 14)
+  puts user.record_dumper(:delimiter=>'').sql.to_s
+
+  # =>
+  INSERT INTO users VALUES (NULL, 'maiha',14);
+
+
+5. with :dependent option
+
+You can get all associated records by using :dependent option.
+
+  class User < ActiveRecord::Base
+    has_one :address
+  end
+
+  user = User.create!(:name=>"maiha", :age=>14)
+  user.create_address(:city=>"Tokyo", :address=>"Akihabara")
+  puts user.record_dumper(:dependent=>true).sql.to_s
+
+  # =>
+  User.create!(
+    :id   => nil,
+    :name => "maiha",
+    :age  => 14
+  )
+
+  Address.create!(
+    :id      => 1,
+    :city    => "Tokyo",
+    :address => "Akihabara",
+    :user_id => 1
+  )
+
+
+
+Enhancement
+===========
+
+If you want your own format, create subclass of RecordDumper::Base
+and define 'record' method in it.
+
+  class TableTr < ActiveRecord::RecordDumper::Base
+    def column(col, val)
+        "<td>#{val}</td>"
+    end
+
+    def record
+      "<tr>%s</tr>" % columns.join
+    end
+  end
+  ActiveRecord::RecordDumper.reload   # don't forget this to enable new classes
+
+  user = User.new(:name => 'maiha', :age => 14)
+  puts user.record_dumper.table_tr.to_s
+
+  # =>
+  <tr><td></td><td>maiha</td><td>14</td></tr>
+
+
+Copyright (c) 2008 maiha@wota.jp, released under the MIT license
+
